@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AlertTriangle, CheckCircle, Clock, Download, Search, Shield } from "lucide-react";
+import { AlertTriangle, CheckCircle, Clock, Download, Search, Shield, Trash2 } from "lucide-react";
 import { clsx } from "clsx";
 
 interface Finding {
@@ -21,7 +21,7 @@ export default function FindingsPage() {
     const [selectedSeverities, setSelectedSeverities] = useState<string[]>(["critical", "high", "medium", "low", "info", "unknown"]);
 
     useEffect(() => {
-        fetch("http://localhost:3001/api/findings")
+        fetch("http://127.0.0.1:3001/api/findings", { credentials: "include" })
             .then((res) => res.json())
             .then((data) => {
                 setFindings(data);
@@ -39,6 +39,24 @@ export default function FindingsPage() {
                 ? prev.filter(s => s !== severity)
                 : [...prev, severity]
         );
+    };
+
+    const deleteFinding = (id: number, e: React.MouseEvent) => {
+        e.stopPropagation();
+        if (confirm("Are you sure you want to delete this finding?")) {
+            fetch(`http://127.0.0.1:3001/api/findings/${id}`, {
+                method: "DELETE",
+                credentials: "include",
+            })
+                .then((res) => {
+                    if (res.ok) {
+                        setFindings(prev => prev.filter(f => f.id !== id));
+                    } else {
+                        alert("Failed to delete finding");
+                    }
+                })
+                .catch((err) => console.error("Failed to delete finding:", err));
+        }
     };
 
     const filteredFindings = findings.filter((f) => {
@@ -129,18 +147,19 @@ export default function FindingsPage() {
                             <th className="px-6 py-4">Host</th>
                             <th className="px-6 py-4">State</th>
                             <th className="px-6 py-4">Last Seen</th>
+                            <th className="px-6 py-4 text-right">Actions</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-border">
                         {isLoading ? (
                             <tr>
-                                <td colSpan={5} className="px-6 py-8 text-center text-muted-foreground">
+                                <td colSpan={6} className="px-6 py-8 text-center text-muted-foreground">
                                     Loading findings...
                                 </td>
                             </tr>
                         ) : filteredFindings.length === 0 ? (
                             <tr>
-                                <td colSpan={5} className="px-6 py-8 text-center text-muted-foreground">
+                                <td colSpan={6} className="px-6 py-8 text-center text-muted-foreground">
                                     No findings found.
                                 </td>
                             </tr>
@@ -170,12 +189,21 @@ export default function FindingsPage() {
                                         <Clock className="w-3 h-3" />
                                         {new Date(finding.last_seen).toLocaleDateString()}
                                     </td>
+                                    <td className="px-6 py-4 text-right">
+                                        <button
+                                            onClick={(e) => deleteFinding(finding.id, e)}
+                                            className="p-2 text-muted-foreground hover:text-red-500 hover:bg-red-500/10 rounded-md transition-colors"
+                                            title="Delete Finding"
+                                        >
+                                            <Trash2 className="w-4 h-4" />
+                                        </button>
+                                    </td>
                                 </tr>
                             ))
                         )}
                     </tbody>
                 </table>
             </div>
-        </div>
+        </div >
     );
 }

@@ -37,3 +37,12 @@ Thumbs.db
 
 # Documentation
 Refrences and Guides/
+
+# Sensitive
+cookies.txt
+*.pem
+*.key
+*.crt
+
+# Go
+coverage.out

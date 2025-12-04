@@ -23,10 +23,11 @@ export default function NewScanPage() {
         setSuccess("");
 
         try {
-            const res = await fetch("http://localhost:3001/api/scan", {
+            const res = await fetch("http://127.0.0.1:3001/api/scan", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ target, type: scanType, templates }),
+                credentials: "include",
             });
 
             if (!res.ok) throw new Error("Failed to start scan");

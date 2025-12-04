@@ -41,12 +41,21 @@ export default function DashboardPage() {
     critical_issues: 0,
     recent_scans: [] as any[],
     critical_findings: [] as any[],
+    vulnerability_change: "Loading...",
+    vulnerability_trend: "neutral",
   });
 
   useEffect(() => {
     const fetchStats = () => {
-      fetch("http://localhost:3001/api/stats")
-        .then((res) => res.json())
+      fetch("http://127.0.0.1:3001/api/stats", { credentials: "include" })
+        .then((res) => {
+          if (res.status === 401) {
+            window.location.href = "/login";
+            throw new Error("Unauthorized");
+          }
+          if (!res.ok) throw new Error("Failed to fetch stats");
+          return res.json();
+        })
         .then((data) => setStats(data))
         .catch((err) => console.error("Failed to fetch stats:", err));
     };
@@ -70,9 +79,9 @@ export default function DashboardPage() {
         <StatCard
           title="Total Vulnerabilities"
           value={stats.total_vulnerabilities.toLocaleString()}
-          change="+12% from last week"
+          change={stats.vulnerability_change}
           icon={Shield}
-          trend="up"
+          trend={stats.vulnerability_trend as "up" | "down" | "neutral"}
         />
         <StatCard
           title="Active Scans"
@@ -110,9 +119,9 @@ export default function DashboardPage() {
                     <p className="text-xs text-muted-foreground">{new Date(scan.created_at).toLocaleString()}</p>
                   </div>
                   <div className={`px-2 py-1 rounded-full text-xs font-medium flex items-center gap-2 ${scan.status === 'completed' ? 'bg-green-500/10 text-green-500' :
-                      scan.status === 'running' ? 'bg-blue-500/10 text-blue-500' :
-                        scan.status === 'stopped' ? 'bg-gray-500/10 text-gray-500' :
-                          'bg-red-500/10 text-red-500'
+                    scan.status === 'running' ? 'bg-blue-500/10 text-blue-500' :
+                      scan.status === 'stopped' ? 'bg-gray-500/10 text-gray-500' :
+                        'bg-red-500/10 text-red-500'
                     }`}>
                     {scan.status.toUpperCase()}
                     {scan.status === 'running' && (

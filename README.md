@@ -20,32 +20,53 @@ A modern, real-time dashboard for [Nuclei](https://github.com/projectdiscovery/n
 
 ### Prerequisites
 
-*   Go 1.21+
-*   Node.js 18+
+*   **Go**: Version 1.21 or higher. [Download Go](https://go.dev/dl/)
+*   **Node.js**: Version 18 or higher. [Download Node.js](https://nodejs.org/)
+*   **Nuclei**: Ensure `nuclei` is installed and in your PATH.
+    ```bash
+    go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
+    ```
 
 ### Installation
 
-1.  Clone the repository:
+1.  **Clone the repository:**
     ```bash
     git clone https://github.com/devtint/NucleiDashboard.git
     cd NucleiDashboard
     ```
 
-2.  Start the Backend:
+2.  **Start the Backend:**
+    The backend handles scanning logic and database management.
     ```bash
     cd backend
     go mod tidy
-    go run main.go nuclei_wrapper.go
+    go run .
     ```
+    *The backend will run on `http://127.0.0.1:3001`*
 
-3.  Start the Frontend:
+3.  **Start the Frontend:**
+    Open a new terminal window for the frontend.
     ```bash
     cd frontend
     npm install
     npm run dev
     ```
+    *The frontend will run on `http://localhost:3000`*
 
-4.  Open [http://localhost:3000](http://localhost:3000).
+4.  **Access the Dashboard:**
+    Open your browser and navigate to [http://localhost:3000](http://localhost:3000).
+
+## Troubleshooting
+
+### "Nuclei not found"
+Ensure that `nuclei` is installed and available in your system's PATH. You can verify this by running `nuclei -version` in your terminal.
+
+### Database Issues
+If you encounter database errors, try deleting the `nuclei-dashboard.db` file in the `backend` directory and restarting the backend. It will be recreated automatically.
+
+### Port Conflicts
+- Ensure port `3001` is free for the backend.
+- Ensure port `3000` is free for the frontend.
 
 ## License
 

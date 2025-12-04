@@ -1,6 +1,6 @@
 "use client";
 
-import { LayoutDashboard, Radar, ShieldAlert, Settings, Terminal } from "lucide-react";
+import { LayoutDashboard, Radar, ShieldAlert, Settings, Terminal, LogOut } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { clsx } from "clsx";
@@ -47,10 +47,21 @@ export function Sidebar() {
             </nav>
 
             <div className="p-4 border-t border-border">
-                <div className="bg-accent/50 rounded-lg p-4">
+                <div className="bg-accent/50 rounded-lg p-4 mb-4">
                     <p className="text-xs text-muted-foreground">Nuclei Version</p>
                     <p className="text-sm font-mono font-semibold">v3.2.0</p>
                 </div>
+
+                <button
+                    onClick={() => {
+                        fetch("http://127.0.0.1:3001/api/logout", { method: "POST", credentials: "include" })
+                            .then(() => window.location.href = "/login");
+                    }}
+                    className="w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium text-red-500 hover:bg-red-500/10 transition-colors"
+                >
+                    <LogOut className="w-5 h-5" />
+                    Logout
+                </button>
             </div>
         </div>
     );

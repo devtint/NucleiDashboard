@@ -111,6 +111,15 @@ func processResult(scanID uint, event *output.ResultEvent) {
 	hash := sha256.Sum256([]byte(data))
 	fingerprint := hex.EncodeToString(hash[:])
 
+	// Determine MatchedAt (fallback to URL or Host if empty)
+	matchedAt := event.Matched
+	if matchedAt == "" {
+		matchedAt = event.URL
+	}
+	if matchedAt == "" {
+		matchedAt = event.Host
+	}
+
 	// 2. Check DB for existing finding (Smart Diffing)
 	var existingFinding database.Finding
 	result := database.DB.Where("fingerprint = ?", fingerprint).First(&existingFinding)
@@ -128,7 +137,7 @@ func processResult(scanID uint, event *output.ResultEvent) {
 			Severity:    event.Info.SeverityHolder.Severity.String(),
 			Description: event.Info.Description,
 			Host:        event.Host,
-			MatchedAt:   event.Matched,
+			MatchedAt:   matchedAt,
 			Fingerprint: fingerprint,
 			State:       "NEW",
 			FirstSeen:   now,

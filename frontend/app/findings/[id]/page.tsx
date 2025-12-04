@@ -39,7 +39,7 @@ export default function FindingDetailsPage() {
     const [isLoading, setIsLoading] = useState(true);
 
     useEffect(() => {
-        fetch(`http://localhost:3001/api/findings/${params.id}`)
+        fetch(`http://127.0.0.1:3001/api/findings/${params.id}`)
             .then((res) => {
                 if (!res.ok) throw new Error("Finding not found");
                 return res.json();
@@ -78,6 +78,7 @@ export default function FindingDetailsPage() {
             method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ state: newStatus }),
+            credentials: "include",
         })
             .then((res) => {
                 if (!res.ok) throw new Error("Failed to update status");
@@ -92,6 +93,7 @@ export default function FindingDetailsPage() {
         if (confirm("Are you sure you want to delete this finding? This action cannot be undone.")) {
             fetch(`http://localhost:3001/api/findings/${finding.id}`, {
                 method: "DELETE",
+                credentials: "include",
             })
                 .then((res) => {
                     if (res.ok) {

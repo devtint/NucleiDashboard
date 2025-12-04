@@ -16,7 +16,7 @@ export default function TemplatesPage() {
     const router = useRouter();
 
     useEffect(() => {
-        fetch("http://localhost:3001/api/templates")
+        fetch("http://127.0.0.1:3001/api/templates", { credentials: "include" })
             .then(res => res.json())
             .then(data => {
                 setTemplates(data);

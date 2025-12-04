@@ -13,6 +13,7 @@ import (
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/golang-jwt/jwt/v5"
 )
 
 func main() {
@@ -24,7 +25,12 @@ func main() {
 	app := fiber.New()
 
 	// Enable CORS for frontend
-	app.Use(cors.New())
+	// Enable CORS for frontend
+	app.Use(cors.New(cors.Config{
+		AllowOrigins:     "http://localhost:3000, http://127.0.0.1:3000",
+		AllowHeaders:     "Origin, Content-Type, Accept",
+		AllowCredentials: true,
+	}))
 
 	app.Get("/", func(c *fiber.Ctx) error {
 		return c.SendString("Nuclei Dashboard Backend is Running!")
@@ -219,6 +225,83 @@ func main() {
 		return c.SendString(string(content))
 	})
 
+	// Auth Middleware
+	app.Use(func(c *fiber.Ctx) error {
+		// Public routes
+		if c.Path() == "/api/login" || c.Path() == "/api/health" || !strings.HasPrefix(c.Path(), "/api/") {
+			return c.Next()
+		}
+
+		cookie := c.Cookies("auth_token")
+		if cookie == "" {
+			return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
+		}
+
+		token, err := jwt.Parse(cookie, func(token *jwt.Token) (interface{}, error) {
+			if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+			}
+			return []byte("secret-key"), nil // In production, use env var
+		})
+
+		if err != nil || !token.Valid {
+			return c.Status(401).JSON(fiber.Map{"error": "Unauthorized"})
+		}
+
+		return c.Next()
+	})
+
+	app.Post("/api/login", func(c *fiber.Ctx) error {
+		var input struct {
+			Password string `json:"password"`
+		}
+
+		if err := c.BodyParser(&input); err != nil {
+			return c.Status(400).JSON(fiber.Map{"error": "Invalid input"})
+		}
+
+		adminPassword := os.Getenv("ADMIN_PASSWORD")
+		if adminPassword == "" {
+			adminPassword = "admin"
+		}
+
+		if input.Password != adminPassword {
+			return c.Status(401).JSON(fiber.Map{"error": "Invalid password"})
+		}
+
+		// Create token
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+			"admin": true,
+			"exp":   time.Now().Add(time.Hour * 24).Unix(),
+		})
+
+		tokenString, err := token.SignedString([]byte("secret-key"))
+		if err != nil {
+			return c.Status(500).JSON(fiber.Map{"error": "Could not create token"})
+		}
+
+		c.Cookie(&fiber.Cookie{
+			Name:     "auth_token",
+			Value:    tokenString,
+			Expires:  time.Now().Add(time.Hour * 24),
+			HTTPOnly: true,
+			SameSite: "Lax",
+		})
+
+		return c.JSON(fiber.Map{"status": "success"})
+	})
+
+	app.Post("/api/logout", func(c *fiber.Ctx) error {
+		c.Cookie(&fiber.Cookie{
+			Name:     "auth_token",
+			Value:    "",
+			Expires:  time.Now().Add(-time.Hour),
+			HTTPOnly: true,
+			SameSite: "Lax",
+		})
+		return c.JSON(fiber.Map{"status": "success"})
+	})
+
 	app.Get("/api/stats", func(c *fiber.Ctx) error {
 		var totalVulnerabilities int64
 		var activeScans int64
@@ -241,12 +324,45 @@ func main() {
 		var criticalFindings []database.Finding
 		database.DB.Where("state != ? AND (severity = ? OR severity = ?)", "FIXED", "critical", "high").Order("created_at desc").Limit(5).Find(&criticalFindings)
 
+		// Calculate trend (vs 7 days ago)
+		var totalVulnerabilitiesLastWeek int64
+		lastWeek := time.Now().AddDate(0, 0, -7)
+		database.DB.Model(&database.Finding{}).Where("state != ? AND created_at < ?", "FIXED", lastWeek).Count(&totalVulnerabilitiesLastWeek)
+
+		var vulnerabilityChange string
+		var vulnerabilityTrend string
+
+		if totalVulnerabilitiesLastWeek == 0 {
+			if totalVulnerabilities > 0 {
+				vulnerabilityChange = "+100%"
+				vulnerabilityTrend = "up"
+			} else {
+				vulnerabilityChange = "0%"
+				vulnerabilityTrend = "neutral"
+			}
+		} else {
+			diff := float64(totalVulnerabilities - totalVulnerabilitiesLastWeek)
+			percent := (diff / float64(totalVulnerabilitiesLastWeek)) * 100
+			if percent > 0 {
+				vulnerabilityChange = fmt.Sprintf("+%.0f%% from last week", percent)
+				vulnerabilityTrend = "up"
+			} else if percent < 0 {
+				vulnerabilityChange = fmt.Sprintf("%.0f%% from last week", percent)
+				vulnerabilityTrend = "down" // down is actually good for vulnerabilities, but visually we might want green for down
+			} else {
+				vulnerabilityChange = "No change"
+				vulnerabilityTrend = "neutral"
+			}
+		}
+
 		return c.JSON(fiber.Map{
 			"total_vulnerabilities": totalVulnerabilities,
 			"active_scans":          activeScans,
 			"critical_issues":       criticalIssues,
 			"recent_scans":          recentScans,
 			"critical_findings":     criticalFindings,
+			"vulnerability_change":  vulnerabilityChange,
+			"vulnerability_trend":   vulnerabilityTrend,
 		})
 	})
 
@@ -257,5 +373,5 @@ func main() {
 		})
 	})
 
-	log.Fatal(app.Listen(":3001"))
+	log.Fatal(app.Listen("0.0.0.0:3001"))
 }
