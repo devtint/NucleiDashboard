@@ -1,37 +1,36 @@
-# Binaries
-backend/server
-backend/check_context.go
-
 # Dependencies
-backend/vendor/
-frontend/node_modules/
+node_modules/
+vendor/
 
-# Next.js
-frontend/.next/
-frontend/out/
-frontend/build/
-frontend/dist/
+# Build
+.next/
+out/
+build/
+dist/
+backend/server
+backend/check_context
 
-# Environment variables
+# Environment
 .env
 .env.local
-.env.development.local
-.env.test.local
-.env.production.local
+.env.*.local
 
-# Database
-backend/nuclei-dashboard.db
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
 
 # Logs
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-backend/*.log
+*.log
 
 # OS
 .DS_Store
 Thumbs.db
 
-# IDE
-.vscode/
-.idea/
+# Database
+*.db
+*.sqlite
