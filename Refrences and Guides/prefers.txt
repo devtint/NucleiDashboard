@@ -1,0 +1,65 @@
+# Architecture Preferences: Banking-Grade Nuclei Dashboard
+# Perspective: Senior Penetration Tester & Security Architect
+
+## 1. Core Technology Stack
+
+### Backend: Go (Golang)
+*   **Why**: Nuclei itself is written in Go. This is the *only* logical choice for a serious integration.
+*   **Benefit**: We can import `github.com/projectdiscovery/nuclei/v3/pkg/nuclei` directly as a library.
+    *   *No more shelling out*: Avoids the security risks and instability of `subprocess.run("nuclei ...")`.
+    *   *Performance*: Go's goroutines are perfect for handling thousands of concurrent network connections.
+    *   *Deployment*: Compiles to a single, static binary. Easy to secure and deploy in air-gapped banking zones.
+
+### Frontend: TypeScript + React (Next.js)
+*   **Why**: Type safety is non-negotiable for enterprise software.
+*   **Benefit**:
+    *   **Data Handling**: Complex vulnerability data structures (JSON) are easily managed with TypeScript interfaces.
+    *   **Performance**: Server-Side Rendering (SSR) for fast dashboard loads.
+    *   **Ecosystem**: Rich libraries for data grids (TanStack Table) and charts (Recharts) to visualize risk.
+
+### Database: PostgreSQL
+*   **Why**: We need ACID compliance (audit logs) AND flexibility (JSON data).
+*   **Benefit**:
+    *   **JSONB**: Store raw Nuclei findings in `JSONB` columns. Query specific fields (e.g., `finding->'info'->'severity'`) without complex migrations.
+    *   **Reliability**: Rock-solid data integrity, essential for audit trails.
+
+### Queue System: Redis
+*   **Why**: Scanning is long-running. The API must never block.
+*   **Benefit**:
+    *   Push scan jobs to a Redis queue.
+    *   Worker nodes (Go) pick up jobs, run scans, and update the DB.
+
+---
+
+## 2. Critical Enterprise Functions
+
+### A. "Smart" Diffing & Asset Management
+*   **The Problem**: Running a scan every day generates too much noise.
+*   **The Solution**:
+    *   Store "Known Good" state.
+    *   Only alert on **New** findings or **Reopened** issues.
+    *   Track "First Seen" and "Last Seen" dates for every asset.
+
+### B. Role-Based Access Control (RBAC) & Audit
+*   **Requirement**: "Who scanned the CEO's laptop?"
+*   **Implementation**:
+    *   **Strict Logging**: Every scan start/stop is logged with UserID, Timestamp, and Target.
+    *   **Scopes**: Junior testers can only scan `dev` subnets. Seniors can scan `prod`.
+
+### C. Automated Triage & Ticketing
+*   **Integration**: Jira / ServiceNow.
+*   **Logic**:
+    *   If Severity = `Critical` AND Confidence = `Certain` -> **Auto-create Jira Ticket**.
+    *   If Severity = `Low` -> **Log only**.
+
+### D. False Positive Management
+*   **Feature**: "Mark as False Positive".
+*   **Logic**:
+    *   When a finding is marked FP, hash it (fingerprint).
+    *   Future scans check the hash. If match -> Auto-hide.
+    *   *Crucial*: FPs must be reviewed quarterly (expiry date on FPs).
+
+## 3. Security Considerations (The "Banking" Standard)
+*   **Self-Hosted Only**: No data leaves the VPC.
+*   **Secret Management**: API keys (for Jira, Slack) stored in HashiCorp Vault, not env vars.
+*   **Input Validation**: Strict validation of target IPs/Domains to prevent SSRF or scanning unauthorized internal ranges.
