@@ -23,10 +23,6 @@ A modern, real-time dashboard for [Nuclei](https://github.com/projectdiscovery/n
 *   **Go**: Version 1.21 or higher. [Download Go](https://go.dev/dl/)
 *   **Node.js**: Version 18 or higher. [Download Node.js](https://nodejs.org/)
 *   **Nuclei**: Ensure `nuclei` is installed and in your PATH.
-    ```bash
-    go install -v github.com/projectdiscovery/nuclei/v3/cmd/nuclei@latest
-    ```
-
 ### Installation
 
 1.  **Clone the repository:**
