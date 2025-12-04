@@ -4,6 +4,9 @@ import (
 	"encoding/csv"
 	"fmt"
 	"log"
+	"os"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"nuclei-dashboard/database"
@@ -170,6 +173,50 @@ func main() {
 		}
 
 		return nil
+	})
+
+	app.Get("/api/templates", func(c *fiber.Ctx) error {
+		root := "/home/tyrell/nuclei-templates"
+		var templates []map[string]string
+
+		err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
+			if err != nil {
+				return err
+			}
+			if !info.IsDir() && strings.HasSuffix(info.Name(), ".yaml") {
+				relPath, _ := filepath.Rel(root, path)
+				templates = append(templates, map[string]string{
+					"name": relPath,
+					"path": path,
+				})
+			}
+			return nil
+		})
+
+		if err != nil {
+			return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+		}
+
+		return c.JSON(templates)
+	})
+
+	app.Get("/api/templates/content", func(c *fiber.Ctx) error {
+		path := c.Query("path")
+		if path == "" {
+			return c.Status(400).JSON(fiber.Map{"error": "Path is required"})
+		}
+
+		// Basic security check: ensure path starts with templates directory
+		if !strings.HasPrefix(path, "/home/tyrell/nuclei-templates") {
+			return c.Status(403).JSON(fiber.Map{"error": "Access denied"})
+		}
+
+		content, err := os.ReadFile(path)
+		if err != nil {
+			return c.Status(500).JSON(fiber.Map{"error": err.Error()})
+		}
+
+		return c.SendString(string(content))
 	})
 
 	app.Get("/api/stats", func(c *fiber.Ctx) error {

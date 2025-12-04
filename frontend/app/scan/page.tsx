@@ -1,14 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { Play, Globe, Zap, Shield, FileCode } from "lucide-react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Play, Shield, Target, Terminal } from "lucide-react";
 import { clsx } from "clsx";
 import { AlertTriangle } from "lucide-react"; // Added for error message icon
 
-export default function ScanPage() {
+export default function NewScanPage() {
+    const router = useRouter();
+    const searchParams = useSearchParams();
     const [target, setTarget] = useState("");
     const [scanType, setScanType] = useState("fast");
-    const [templates, setTemplates] = useState("");
+    const [templates, setTemplates] = useState(searchParams.get("template") || "");
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState("");
     const [success, setSuccess] = useState("");
