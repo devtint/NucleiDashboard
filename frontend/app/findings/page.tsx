@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AlertTriangle, CheckCircle, Clock, Search, Shield } from "lucide-react";
+import { AlertTriangle, CheckCircle, Clock, Download, Search, Shield } from "lucide-react";
 import { clsx } from "clsx";
 
 interface Finding {
@@ -84,6 +84,15 @@ export default function FindingsPage() {
                     </p>
                 </div>
                 <div className="flex items-center gap-4">
+                    <a
+                        href="http://localhost:3001/api/export"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 px-4 py-2 rounded-lg bg-primary text-primary-foreground hover:bg-primary/90 transition-colors text-sm font-medium"
+                    >
+                        <Download className="w-4 h-4" />
+                        Export CSV
+                    </a>
                     <div className="flex items-center gap-2 bg-card border border-border rounded-lg px-3 py-2">
                         <span className="text-xs font-medium text-muted-foreground mr-2">Severity:</span>
                         {["critical", "high", "medium", "low", "info"].map((sev) => (

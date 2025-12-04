@@ -1,8 +1,10 @@
 package main
 
 import (
+	"encoding/csv"
 	"fmt"
 	"log"
+	"time"
 
 	"nuclei-dashboard/database"
 
@@ -135,6 +137,39 @@ func main() {
 		// Soft delete
 		database.DB.Delete(&finding)
 		return c.JSON(fiber.Map{"status": "deleted", "id": id})
+	})
+
+	app.Get("/api/export", func(c *fiber.Ctx) error {
+		var findings []database.Finding
+		if result := database.DB.Find(&findings); result.Error != nil {
+			return c.Status(500).SendString("Failed to fetch findings")
+		}
+
+		c.Set("Content-Type", "text/csv")
+		c.Set("Content-Disposition", "attachment; filename=findings.csv")
+
+		writer := csv.NewWriter(c.Response().BodyWriter())
+		defer writer.Flush()
+
+		// Headers
+		writer.Write([]string{"ID", "Name", "Severity", "Host", "Template ID", "State", "Matched At", "First Seen", "Last Seen"})
+
+		// Data
+		for _, f := range findings {
+			writer.Write([]string{
+				fmt.Sprintf("%d", f.ID),
+				f.Name,
+				f.Severity,
+				f.Host,
+				f.TemplateID,
+				f.State,
+				f.MatchedAt,
+				f.FirstSeen.Format(time.RFC3339),
+				f.LastSeen.Format(time.RFC3339),
+			})
+		}
+
+		return nil
 	})
 
 	app.Get("/api/stats", func(c *fiber.Ctx) error {
