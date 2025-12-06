@@ -1,69 +1,78 @@
-# Nuclei Dashboard
+## ⚛️ Nuclei Dashboard
 
-A modern, real-time dashboard for [Nuclei](https://github.com/projectdiscovery/nuclei), the fast and customizable vulnerability scanner.
+A modern, real-time web interface for managing and visualizing findings from **Nuclei**, the fast and customizable vulnerability scanner.
 
-## Features
+---
 
-*   **Real-time Statistics**: View total vulnerabilities, active scans, and critical issues instantly.
-*   **Live Scanning**: Start and stop scans directly from the UI.
-*   **Smart Diffing**: Automatically tracks new, fixed, and regressed findings.
-*   **Filtering**: Filter findings by severity (Critical, High, Medium, Low, Info).
-*   **Management**: Mark findings as False Positive, Accepted Risk, or Fixed. Delete findings permanently.
-*   **Dark Mode**: Sleek, hacker-friendly interface.
+### ✨ Key Features
 
-## Tech Stack
+* **Real-time Stats:** Instantly view total vulnerabilities, active scans, and critical issues.
+* **Live Scanning:** Initiate and terminate Nuclei scans directly from the UI.
+* **Smart Diffing:** Automatic tracking of **new, fixed, and regressed** findings across different scans.
+* **Filtering:** Filter findings efficiently by severity (Critical, High, Medium, Low, Info).
+* **Finding Management:** Mark issues as **False Positive**, **Accepted Risk**, or **Fixed**. Also supports permanent deletion.
+* **Dark Mode:** A sleek, optimized interface for long-term use.
 
-*   **Backend**: Go (Fiber), GORM, SQLite, Nuclei SDK
-*   **Frontend**: Next.js, Tailwind CSS, Lucide Icons
+---
 
-## Getting Started
+### ⚙️ Tech Stack
 
-### Prerequisites
+| Component | Technology | Description |
+| :--- | :--- | :--- |
+| **Backend** | Go (Fiber), GORM, SQLite, Nuclei SDK | Handles scanning logic and persistent data storage. |
+| **Frontend** | Next.js, Tailwind CSS, Lucide Icons | Provides the interactive and responsive user interface. |
 
-*   **Go**: Version 1.21 or higher. [Download Go](https://go.dev/dl/)
-*   **Node.js**: Version 18 or higher. [Download Node.js](https://nodejs.org/)
-*   **Nuclei**: Ensure `nuclei` is installed and in your PATH.
-### Installation
+---
 
-1.  **Clone the repository:**
+### 🚀 Getting Started
+
+#### Prerequisites
+
+To run the Nuclei Dashboard, you need the following tools installed:
+
+* **Go:** Version **1.21 or higher**. ([Download Go](https://go.dev/doc/install))
+* **Node.js:** Version **18 or higher**. ([Download Node.js](https://nodejs.org/en/download/))
+* **Nuclei:** Must be installed and accessible in your system's **PATH**.
+
+#### Installation Steps
+
+1.  **Clone the Repository:**
+
     ```bash
-    git clone https://github.com/devtint/NucleiDashboard.git
+    git clone [https://github.com/devtint/NucleiDashboard.git](https://github.com/devtint/NucleiDashboard.git)
     cd NucleiDashboard
     ```
 
 2.  **Start the Backend:**
-    The backend handles scanning logic and database management.
+
+    Navigate to the backend directory and run the Go application.
+
     ```bash
     cd backend
     go mod tidy
     go run .
     ```
-    *The backend will run on `http://127.0.0.1:3001`*
+
+    > ℹ️ The backend server will be running on **`http://127.0.0.1:3001`**
 
 3.  **Start the Frontend:**
-    Open a new terminal window for the frontend.
+
+    Open a new terminal window, navigate to the frontend directory, and start the development server.
+
     ```bash
     cd frontend
     npm install
     npm run dev
     ```
-    *The frontend will run on `http://localhost:3000`*
 
-4.  **Access the Dashboard:**
-    Open your browser and navigate to [http://localhost:3000](http://localhost:3000).
+    > ℹ️ The frontend application will be available at **`http://127.0.0.1:3000`**
 
-## Troubleshooting
+---
 
-### "Nuclei not found"
-Ensure that `nuclei` is installed and available in your system's PATH. You can verify this by running `nuclei -version` in your terminal.
+### ⚠️ Troubleshooting
 
-### Database Issues
-If you encounter database errors, try deleting the `nuclei-dashboard.db` file in the `backend` directory and restarting the backend. It will be recreated automatically.
-
-### Port Conflicts
-- Ensure port `3001` is free for the backend.
-- Ensure port `3000` is free for the frontend.
-
-## License
-
-MIT
+| Issue | Solution |
+| :--- | :--- |
+| **"Nuclei not found"** | Ensure `nuclei` is properly installed and its location is included in your system's **PATH**. Verify by running `nuclei -version`. |
+| **Database Errors** | Try deleting the database file, `nuclei-dashboard.db`, located in the `backend` directory. Restarting the backend will automatically recreate it. |
+| **Port Conflicts** | Verify that **port 3001** (for the backend) and **port 3000** (for the frontend) are free on your system. |
